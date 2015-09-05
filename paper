@@ -1,57 +1,129 @@
 #!/bin/bash
 
-if [ "$#" -lt 1 ]
-then
-	echo "Use: paper <SUBJECT> [PAGE NUMBER]"
-	exit -1;
-fi
+DEBUG=false
+
+TIMESTAMP=$(date +%s)
+
+#if [ "$#" -lt 1 ]
+#then
+#	echo "Use: paper [options] [--transparency]"
+#	exit -1;
+#fi
+
+function heelp()
+{
+	cat <<EOT
+Usage:
+
+	paper [OPTIONS]
+
+Options are:
+
+	-t	Paper Title (Subject, default: 'untitled')
+
+	-p	Page Number (default: '000')
+
+	-o	Transparent bg (Not white, default: not transparent)
+EOT
+
+echo
+}
+
+while getopts "t:p:oih" OPTS;
+do
+	case $OPTS in
+		t)
+			TITLESTR=$OPTARG
+			;;
+
+		p)
+			PAGE_NUMBER=$OPTARG
+			;;
+
+		o)
+			TRANSPARENCY=true
+			;;
+		h)
+			heelp
+			exit 0
+			;;
+		:)
+			echo "Option $OPTARG requires an argument"
+			exit 1
+			;;
+		\?)
+			echo "Invalid option: $OPTARG"
+			exit 1
+			;;
+	esac
+done
 
 USER="Kassius_Iakxos_Mercurius|www.kassius.org:github.com/kassius/:launchpad.net/~kassius"
 
-TIMESTAMP=$(date +%s)
+#TIMESTAMP=$(date +%s)
 
 DATESTR=$(date -Iseconds --date="@$TIMESTAMP")
 FULLDATESTR=$(date -R --date="@$TIMESTAMP")
 
+#TITLESTR="$1";
+#ULINED_TITLESTR=${TITLESTR// /_}
 
-TITLESTR="$1";
-ULINED_TITLESTR=${TITLESTR// /_}
-
-if [ "$#" -eq 1 ]
+if [ ! $TITLESTR ]
 then
-	CUR_PAGE="000";
-else
-	CUR_PAGE="$2"
+	TITLESTR="untitled";
 fi
 
-UNIQUEID=$(echo "$USER+$DATESTR+$ULINED_TITLESTR+$CUR_PAGE" | sha256sum | awk '{print $1}')
+if [ ! $PAGE_NUMBER ]
+then
+	PAGE_NUMBER="000";
+fi
 
+ULINED_TITLESTR=${TITLESTR// /_}
+
+UNIQUEID=$(echo "$USER+$DATESTR+$ULINED_TITLESTR+$PAGE_NUMBER" | sha256sum | awk '{print $1}')
 MINI_UID=${UNIQUEID:0:16}
 
-FILENAME="Letterhead-$DATESTR-$MINI_UID-$ULINED_TITLESTR-$CUR_PAGE.png"
+FILENAME="Letterhead-$DATESTR-$MINI_UID-$ULINED_TITLESTR-$PAGE_NUMBER.png"
+
+#while test $# -gt 0
+#do
+#	case "$1" in
+#		--transparency) TRANSPARENCY=true
+			;;
+#	esac
+#	shift
+#done
 
 read -r -d '' TEXT <<EOT
 SUBJECT: $TITLESTR
 PAPER DATE: $FULLDATESTR
-PAGE IS: $CUR_PAGE
+PAGE IS: $PAGE_NUMBER
 UNIQUE ID (SHA256SUM):
 $UNIQUEID
 EOT
 
 # DEBUG
 
-echo "USER is $USER"
-echo "DATESTR is $DATESTR"
-echo "FULLDATESTR is $FULLDATESTR"
-echo "TITLESTR is $TITLESTR"
-echo "ULINED_TITLESTR is $ULINED_TITLESTR"
-echo "UNIQUEID is $UNIQUEID"
-echo "FILENAME is $FILENAME"
-echo "CUR_PAGE is $CUR_PAGE"
-echo "TEXT is:"
-echo "- - -"
-echo "$TEXT"
-echo "- - -"
+if [ $DEBUG ]
+then
+	echo "USER is $USER"
+	echo "DATESTR is $DATESTR"
+	echo "FULLDATESTR is $FULLDATESTR"
+	echo "TITLESTR is $TITLESTR"
+	echo "ULINED_TITLESTR is $ULINED_TITLESTR"
+	echo "UNIQUEID is $UNIQUEID"
+	echo "FILENAME is $FILENAME"
+	echo "PAGE_NUMBER is $PAGE_NUMBER"
+	echo "TEXT is:"
+	echo "- - -"
+	echo "$TEXT"
+	echo "- - -"
+fi
 
-echo "$TEXT" | bash createpaper.sh "$FILENAME"
+if [ ! $TRANSPARENCY ]
+then
+	echo "$TEXT" | bash createpaper.sh "$FILENAME"
+else
 
+	echo "$TEXT" | bash createpaper.sh "$FILENAME" --transparency
+fi
