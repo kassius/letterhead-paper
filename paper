@@ -1,0 +1,57 @@
+#!/bin/bash
+
+if [ "$#" -lt 1 ]
+then
+	echo "Use: paper <SUBJECT> [PAGE NUMBER]"
+	exit -1;
+fi
+
+USER="Kassius_Iakxos_Mercurius|www.kassius.org:github.com/kassius/:launchpad.net/~kassius"
+
+TIMESTAMP=$(date +%s)
+
+DATESTR=$(date -Iseconds --date="@$TIMESTAMP")
+FULLDATESTR=$(date -R --date="@$TIMESTAMP")
+
+
+TITLESTR="$1";
+ULINED_TITLESTR=${TITLESTR// /_}
+
+if [ "$#" -eq 1 ]
+then
+	CUR_PAGE="000";
+else
+	CUR_PAGE="$2"
+fi
+
+UNIQUEID=$(echo "$USER+$DATESTR+$ULINED_TITLESTR+$CUR_PAGE" | sha256sum | awk '{print $1}')
+
+MINI_UID=${UNIQUEID:0:16}
+
+FILENAME="Letterhead-$DATESTR-$MINI_UID-$ULINED_TITLESTR-$CUR_PAGE.png"
+
+read -r -d '' TEXT <<EOT
+SUBJECT: $TITLESTR
+PAPER DATE: $FULLDATESTR
+PAGE IS: $CUR_PAGE
+UNIQUE ID (SHA256SUM):
+$UNIQUEID
+EOT
+
+# DEBUG
+
+echo "USER is $USER"
+echo "DATESTR is $DATESTR"
+echo "FULLDATESTR is $FULLDATESTR"
+echo "TITLESTR is $TITLESTR"
+echo "ULINED_TITLESTR is $ULINED_TITLESTR"
+echo "UNIQUEID is $UNIQUEID"
+echo "FILENAME is $FILENAME"
+echo "CUR_PAGE is $CUR_PAGE"
+echo "TEXT is:"
+echo "- - -"
+echo "$TEXT"
+echo "- - -"
+
+echo "$TEXT" | bash createpaper.sh "$FILENAME"
+
