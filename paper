@@ -1,14 +1,8 @@
 #!/bin/bash
 
-DEBUG=false
+# DEBUG = true
 
 TIMESTAMP=$(date +%s)
-
-#if [ "$#" -lt 1 ]
-#then
-#	echo "Use: paper [options] [--transparency]"
-#	exit -1;
-#fi
 
 function heelp()
 {
@@ -84,15 +78,6 @@ UNIQUEID=$(echo "$USER+$DATESTR+$ULINED_TITLESTR+$PAGE_NUMBER" | sha256sum | awk
 MINI_UID=${UNIQUEID:0:16}
 
 FILENAME="Letterhead-$DATESTR-$MINI_UID-$ULINED_TITLESTR-$PAGE_NUMBER.png"
-
-#while test $# -gt 0
-#do
-#	case "$1" in
-#		--transparency) TRANSPARENCY=true
-			;;
-#	esac
-#	shift
-#done
 
 read -r -d '' TEXT <<EOT
 SUBJECT: $TITLESTR
