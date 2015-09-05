@@ -6,7 +6,7 @@ Requires imagemagick and bash.
 
 *Second*, use `paper <SUBJECT> [PAGE_NUMBER]` to create paper. PAGE_NUMBER is optional, if not present will be '000'.
 
-exemple:
+example:
 
 `paper 'SKETCH ABOUT MY LAST IDEAS'`
 
